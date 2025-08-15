@@ -8,6 +8,12 @@ async function query(input: { text: string; values?: Array<any> }) {
     user: process.env.POSTGRES_USER,
     port: parseInt(process.env.POSTGRES_PORT),
     database: process.env.POSTGRES_DB,
+    ssl:
+      process.env.NODE_ENV !== "production"
+        ? false
+        : {
+            rejectUnauthorized: false,
+          },
   });
 
   try {
