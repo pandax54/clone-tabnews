@@ -7,7 +7,7 @@ export default async function status(
 ) {
   const versionQuery = await db.getPostgresVersion();
   const maxConnectionsQuery = await db.getMaxConnections();
-  const openedConnectionsQuery = await db.getOpenedConnections('local_postgres');
+  const openedConnectionsQuery = await db.getOpenedConnections(process.env.POSTGRES_DB);
 
   response.status(200).json({
     updated_at: new Date().toISOString(),
