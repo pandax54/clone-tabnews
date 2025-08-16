@@ -8,12 +8,7 @@ async function query(input: { text: string; values?: Array<any> }) {
     user: process.env.POSTGRES_USER,
     port: parseInt(process.env.POSTGRES_PORT),
     database: process.env.POSTGRES_DB,
-    ssl:
-      process.env.NODE_ENV !== "production"
-        ? false
-        : {
-            rejectUnauthorized: false,
-          },
+    ssl: getSslValues()
   });
 
   try {
@@ -26,7 +21,7 @@ async function query(input: { text: string; values?: Array<any> }) {
 
     return result;
   } catch (error) {
-    return;
+    throw error;
   } finally {
     await client.end();
   }
@@ -56,3 +51,18 @@ export default {
     return parseInt(result.rows[0].count);
   },
 };
+
+function getSslValues() {
+  if (process.env.POSTGRES_CA) {
+    return {
+      // for self-assign certificate 
+      ca: process.env.POSTGRES_CA,
+    };
+  }
+
+  return process.env.NODE_ENV !== "production"
+    ? false
+    : {
+        rejectUnauthorized: false,
+      };
+}
