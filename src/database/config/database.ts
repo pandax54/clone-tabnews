@@ -2,13 +2,13 @@ import { Client } from "pg";
 
 async function getNewClient() {
   const client = new Client({
-    host: process.env.POSTGRES_HOST,
-    port: parseInt(process.env.POSTGRES_PORT || "5432"),
-    user: process.env.POSTGRES_USER,
-    database: process.env.POSTGRES_DATABASE,
-    password: process.env.POSTGRES_PASSWORD,
+    host: process.env.POSTGRES_HOST || "localhost",
+    port: parseInt(process.env.POSTGRES_PORT || "5001"),
+    user: process.env.POSTGRES_USER || "local_postgres",
+    database: process.env.POSTGRES_DATABASE || "local_postgres",
+    password: process.env.POSTGRES_PASSWORD || "local_password",
     // connectionString: process.env.DATABASE_URL,
-    ssl: getSslValues(),
+    // ssl: getSslValues(),
   });
   await client.connect();
   return client;
@@ -18,7 +18,7 @@ async function query(input: { text: string; values?: Array<any> }) {
   const { text, values } = input;
   let client: Client | undefined;
   try {
-    client = await getNewClient()
+    client = await getNewClient();
 
     const test = await client.query("SELECT 1 + 1 as sum;");
     if (test.rows[0].sum !== 2) throw new Error("Database not connected.");
@@ -59,15 +59,17 @@ export default {
   },
 };
 
-function getSslValues() {
-  if (process.env.POSTGRES_CA) {
-    return {
-      // for self-assign certificate
-      ca: process.env.POSTGRES_CA,
-    };
-  }
+// function getSslValues() {
+//   if (process.env.POSTGRES_CA) {
+//     return {
+//       // for self-assign certificate
+//       ca: process.env.POSTGRES_CA,
+//     };
+//   }
 
-  return process.env.NODE_ENV === "production"
-    ? true //{ rejectUnauthorized: false,}
-    : false;
-}
+//   console.log('process.env.NODE_ENV:', process.env.NODE_ENV)
+
+//   return process.env.NODE_ENV === "production"
+//     ? true //{ rejectUnauthorized: false,}
+//     : false;
+// }

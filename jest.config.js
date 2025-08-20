@@ -19,7 +19,7 @@ const config = {
   // setupFilesAfterEnv: ["<rootDir>/tests/jest.setup.ts"],
   moduleNameMapper: {
     "^@src/(.*)$": "<rootDir>/src/$1",
-    "^@infra/(.*)$": "<rootDir>/src/infra/$1",
+    "^@database/(.*)$": "<rootDir>/src/database/$1",
   },
 };
 

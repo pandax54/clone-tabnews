@@ -1,0 +1,94 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  # pull_request:
+  # branches: [main, develop]
+
+env:
+  NODE_VERSION: "18"
+
+jobs:
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_USER: testuser
+          POSTGRES_DB: testdb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup environment variables
+        run: |
+          cat > .env.test << EOF
+          DATABASE_URL=postgresql://testuser:testpassword@localhost:5432/testdb
+          BASE_URL=http://localhost:3000
+          NODE_ENV=test
+          EOF
+
+      - name: Run linting
+        run: npm run lint:check
+
+      - name: Run type checking
+        run: npx tsc --noEmit
+
+      # I dont have them yet
+      # - name: Run unit tests
+      #   run: npm run test:unit
+      #   if: always()
+
+      - name: Build application
+        run: npm run build
+
+      - name: Start Next.js application
+        run: |
+          npm start &
+          echo $! > .nextjs.pid
+
+          # Wait for application to be ready
+          timeout 60s bash -c 'until curl -f http://localhost:3000/api/v1/status 2>/dev/null; do sleep 2; done' || {
+            echo "Application failed to start"
+            exit 1
+          }
+
+      - name: Run integration tests
+        run: npm run test:integration
+        env:
+          CI: true
+
+      - name: Stop Next.js application
+        run: |
+          if [ -f .nextjs.pid ]; then
+            kill $(cat .nextjs.pid) || true
+          fi
+        if: always()
+
+      # - name: Upload test coverage
+      #   uses: codecov/codecov-action@v3
+      #   with:
+      #     file: ./coverage/lcov.info
+      #   if: always()
