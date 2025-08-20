@@ -1,16 +1,26 @@
-import { createDefaultPreset } from "ts-jest";
+const nextJest = require("next/jest");
+const path = require("path");
+const dotenv = require("dotenv");
 
-const tsJestTransformCfg = createDefaultPreset().transform;
+dotenv.config({ path: ".env.development" });
 
-/** @type {import("jest").Config} **/
-export default {
-  testEnvironment: "node",
-  preset: "ts-jest",
-  verbose: true,
-  testMatch: ["**/tests/**/**/*.test.ts"],
-  // setupFilesAfterEnv: ["<rootDir>/tests/jest.setup.js"],
-  setupFiles: ["<rootDir>/tests/jest.setup.ts"],
-  transform: {
-    ...tsJestTransformCfg,
+// factory function to create Jest configuration
+/** @type {import('jest').Config} */
+const createJestConfig = nextJest({
+  dir: ".",
+});
+
+const config = {
+  moduleDirectories: ["node_modules", "<rootDir>"],
+  setupFiles: [
+    "<rootDir>/tests/jest.setup.ts", // Your custom setup file
+    "dotenv/config", // Loads .env automatically
+  ],
+  // setupFilesAfterEnv: ["<rootDir>/tests/jest.setup.ts"],
+  moduleNameMapper: {
+    "^@src/(.*)$": "<rootDir>/src/$1",
+    "^@infra/(.*)$": "<rootDir>/src/infra/$1",
   },
 };
+
+module.exports = createJestConfig(config);

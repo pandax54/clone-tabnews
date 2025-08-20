@@ -1,13 +1,13 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import db from "@infra/database";
+import type { NextApiResponse } from "next";
+import db from "@infra/config/database";
 
 export default async function status(
-  request: NextApiRequest,
+  // request: NextApiRequest,
   response: NextApiResponse,
 ) {
   const versionQuery = await db.getPostgresVersion();
   const maxConnectionsQuery = await db.getMaxConnections();
-  const openedConnectionsQuery = await db.getOpenedConnections(process.env.POSTGRES_DB);
+  const openedConnectionsQuery = await db.getOpenedConnections(String(process.env.POSTGRES_DB));
 
   response.status(200).json({
     updated_at: new Date().toISOString(),

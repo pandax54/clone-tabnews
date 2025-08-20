@@ -1,24 +1,52 @@
 {
   "compilerOptions": {
+    // Target and Libraries
+    "target": "es2017", // Target JavaScript version
     "lib": ["dom", "dom.iterable", "esnext"],
+
+    // JavaScript Support
     "allowJs": true,
-    "skipLibCheck": true,
-    "strict": false,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "incremental": true,
-    "esModuleInterop": true,
+    "checkJs": false, // Don't type-check JS files
+
+    // Type Checking
+    "strict": true, // Enable strict type checking
+    "noUnusedLocals": true, // Error on unused variables
+    "noUnusedParameters": true, // Error on unused parameters
+    "noImplicitReturns": true, // Error when not all paths return
+
+    // Module Resolution
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    // Output
+    "noEmit": true,
+    "incremental": true,
     "isolatedModules": true,
+
+    // React
     "jsx": "preserve",
+
+    // Path Mapping
     "baseUrl": "./",
     "paths": {
-      "@/pages/*": ["pages/*"],
-      "@infra/*": ["infra/*"]
-    }
+      "@/*": ["src/*"],
+      "@src/*": ["src/*"],
+      "@pages/*": ["src/pages/*"],
+      "@infra/*": ["src/infra/*"],
+      "@components/*": ["src/components/*"],
+      "@utils/*": ["src/utils/*"],
+      "@types/*": ["src/types/*"]
+    },
+
+    // Other
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
   },
+
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+
+  "exclude": ["node_modules", ".next", "out", "dist"]
 }

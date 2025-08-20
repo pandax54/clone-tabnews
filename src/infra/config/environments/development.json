@@ -1,0 +1,4 @@
+{
+  "migration-file-language": "ts",
+  "migrations-dir": "src/infra/migrations"
+}
