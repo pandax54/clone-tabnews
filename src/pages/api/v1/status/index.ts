@@ -1,8 +1,8 @@
-import type { NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
 import db from "@infra/config/database";
 
 export default async function status(
-  // request: NextApiRequest,
+  _request: NextApiRequest,
   response: NextApiResponse,
 ) {
   const versionQuery = await db.getPostgresVersion();
