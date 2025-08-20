@@ -1,6 +1,5 @@
 
 test("GET to /api/v1/status should return 200", async () => {
-  console.log('BASE_URL:', process.env.BASE_URL)
   const response = await fetch(`${process.env.BASE_URL}/api/v1/status`);
 
   const body = await response.json()
