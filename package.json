@@ -6,6 +6,7 @@
   "scripts": {
     "dev:db": "npm run services:up && next dev",
     "dev": "next dev",
+    "dev:test": "NODE_ENV=test next dev",
     "start": "next start",
     "build": "next build",
     "type-check": "tsc --noEmit",
@@ -19,7 +20,7 @@
     "lint:fix": "prettier --write .",
     "test": "jest --runInBand",
     "test:watch": "jest --watchAll --runInBand",
-    "test:integration": "jest --testPathPattern=tests/integration",
+    "test:integration": "jest --testPathPattern=tests/integration --runInBand",
     "test:coverage": "jest --coverage",
     "docker:test:build": "docker compose -f infra/docker-compose.test.yml up --build --force-recreate -d",
     "scripts:migrations": "node ./scripts/migration.js"

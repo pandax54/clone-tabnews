@@ -8,7 +8,7 @@ async function getNewClient() {
     database: process.env.POSTGRES_DATABASE || "local_postgres",
     password: process.env.POSTGRES_PASSWORD || "local_password",
     // connectionString: process.env.DATABASE_URL,
-    // ssl: getSslValues(),
+    ssl: getSslValues(),
   });
   await client.connect();
   return client;
@@ -59,17 +59,17 @@ export default {
   },
 };
 
-// function getSslValues() {
-//   if (process.env.POSTGRES_CA) {
-//     return {
-//       // for self-assign certificate
-//       ca: process.env.POSTGRES_CA,
-//     };
-//   }
+function getSslValues() {
+  if (process.env.POSTGRES_CA) {
+    return {
+      // for self-assign certificate
+      ca: process.env.POSTGRES_CA,
+    };
+  }
 
-//   console.log('process.env.NODE_ENV:', process.env.NODE_ENV)
+  console.log("process.env.NODE_ENV:", process.env.NODE_ENV);
 
-//   return process.env.NODE_ENV === "production"
-//     ? true //{ rejectUnauthorized: false,}
-//     : false;
-// }
+  return process.env.NODE_ENV === "production"
+    ? { rejectUnauthorized: false }
+    : false;
+}
