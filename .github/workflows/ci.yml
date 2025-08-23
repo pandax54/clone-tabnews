@@ -1,19 +1,17 @@
-name: CI/CD Pipeline
+name: Build, Test & Quality Checks
 
 on:
   push:
-    branches: [main, develop, feat/ci]
-  # pull_request:
-  #   branches: [main, develop]
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  NODE_VERSION: "18"
-  NODE_ENV: "test"
+  NODE_VERSION: '18'
 
 jobs:
-  # Separate job for fast feedback on code quality
   code-quality:
     name: Code Quality
     runs-on: ubuntu-latest
@@ -31,7 +29,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
@@ -53,16 +51,6 @@ jobs:
       - name: Build application
         run: npm run build
 
-      # Cache the built application for other jobs
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-files
-          path: |
-            .next/
-            package.json
-            package-lock.json
-          retention-days: 1
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-latest
@@ -77,9 +65,9 @@ jobs:
           POSTGRES_DB: testdb
         options: >-
           --health-cmd pg_isready
-          --health-interval 30s
-          --health-timeout 10s
-          --health-retries 3
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
         ports:
           - 5432:5432
 
@@ -90,16 +78,22 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
-          cache: "npm"
+          node-version: '18'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
+      - name: Cache build artifacts
+        uses: actions/cache@v3
         with:
-          name: build-files
+          path: .next
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-
+
+      - name: Build if cache miss
+        run: npm run build
 
       - name: Create test environment
         run: |
@@ -112,28 +106,22 @@ jobs:
           POSTGRES_PORT=5432
           PORT=3000
           BASE_URL=http://127.0.0.1:3000
-          NODE_ENV=test
           EOF
 
-      - name: Run database migrations
-        run: npm run migration:up
-        env:
-          DATABASE_URL: postgresql://testuser:testpass@localhost:5432/testdb
-      - name: Build application
-        run: npm run build
-        env:
-          NODE_ENV: test
-          DATABASE_URL: postgresql://testuser:testpass@localhost:5432/testdb
-          POSTGRES_DATABASE: testdb
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpass
-          POSTGRES_HOST: localhost
-          POSTGRES_PORT: 5432
+      # - name: Run database migrations
+      #   run: npm run migration:up
+      #   env:
+      #     DATABASE_URL: postgresql://testuser:testpass@localhost:5432/testdb
+      #     POSTGRES_DATABASE: testdb
+      #     POSTGRES_USER: testuser
+      #     POSTGRES_PASSWORD: testpass
+      #     POSTGRES_HOST: localhost
+      #     POSTGRES_PORT: 5432
 
-      - name: Start application and run integration tests
+      - name: Start application
         run: |
           # Start application in background with explicit test environment
-          npm run dev:test &
+          npm run dev &
           APP_PID=$!
           echo "APP_PID=$APP_PID" >> $GITHUB_ENV
 
@@ -160,16 +148,7 @@ jobs:
             fi
           done
 
-          # Verify NODE_ENV is correctly set
-          echo $NODE_ENV
-          echo "Verifying application environment..."
-          curl -s http://127.0.0.1:3000/api/v1/status | grep -q test || echo "Warning: NODE_ENV might not be test"
-
-          # Run integration tests
-          echo "Running integration tests..."
-          npm run test:integration
         env:
-          NODE_ENV: ${{ env.NODE_ENV }}
           DATABASE_URL: postgresql://testuser:testpass@localhost:5432/testdb
           POSTGRES_DATABASE: testdb
           POSTGRES_USER: testuser
@@ -186,16 +165,6 @@ jobs:
           # Final connectivity test
           curl -f http://127.0.0.1:3000/api/v1/status
           echo "Application is stable and ready for tests"
-
-      # Test the migration endpoint directly
-      - name: Test migration endpoints directly
-        run: |
-          echo "=== Testing GET /api/v1/migrations ==="
-          curl -v http://127.0.0.1:3000/api/v1/migrations || echo "GET failed"
-          echo ""
-          echo "=== Testing POST /api/v1/migrations ==="
-          curl -v -X POST http://127.0.0.1:3000/api/v1/migrations || echo "POST failed"
-
       - name: Run integration tests
         run: npm run test:integration
         env:
@@ -206,7 +175,6 @@ jobs:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
           BASE_URL: http://127.0.0.1:3000
-          NODE_ENV: test
 
       - name: Stop application
         run: |

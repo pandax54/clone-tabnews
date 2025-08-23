@@ -1,4 +1,4 @@
-test("GET to /api/v1/status should return 200", async () => {
+test('GET to /api/v1/status should return 200', async () => {
   const response = await fetch(`${process.env.BASE_URL}/api/v1/status`);
 
   const body = await response.json();
@@ -10,12 +10,12 @@ test("GET to /api/v1/status should return 200", async () => {
 
   expect(body.dependencies.database.version).toBeDefined();
   // expect(body.dependencies.database.version).toMatch(/PostgreSQL/);
-  expect(typeof body.dependencies.database.version).toBe("string");
+  expect(typeof body.dependencies.database.version).toBe('string');
 
   expect(body.dependencies.database.max_connections).toBeDefined();
-  expect(typeof body.dependencies.database.max_connections).toBe("number");
+  expect(typeof body.dependencies.database.max_connections).toBe('number');
 
   expect(body.dependencies.database.opened_connections).toBeDefined();
   expect(body.dependencies.database.opened_connections).toBeGreaterThan(0);
-  expect(typeof body.dependencies.database.opened_connections).toBe("number");
+  expect(typeof body.dependencies.database.opened_connections).toBe('number');
 });

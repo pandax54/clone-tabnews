@@ -1,14 +1,14 @@
-import db from "@database/config/database";
+import db from '@database/config/database';
 
 export async function cleanDatabase() {
   try {
     await db.query({
-      text: "drop schema IF EXISTS public cascade; create schema public;",
+      text: 'drop schema IF EXISTS public cascade; create schema public;'
     });
 
-    console.log("Database cleaned successfully");
+    console.log('Database cleaned successfully');
   } catch (error) {
-    console.error("Failed to clean database:", error);
+    console.error('Failed to clean database:', error);
     throw error;
   }
 }

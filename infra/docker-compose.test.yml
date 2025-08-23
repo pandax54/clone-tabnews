@@ -1,9 +1,9 @@
-version: "3.8"
+version: '3.8'
 
 services:
   # Test Database
   postgres-test:
-    image: "postgres:16-alpine3.22"
+    image: 'postgres:16-alpine3.22'
     container_name: postgres-test
     environment:
       - POSTGRES_DB=testdb
@@ -13,11 +13,11 @@ services:
     tmpfs:
       - /var/lib/postgresql/data # Use memory for faster tests
     ports:
-      - "5433:5432"
+      - '5433:5432'
     networks:
       - test-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U testuser -d testdb"]
+      test: ['CMD-SHELL', 'pg_isready -U testuser -d testdb']
       interval: 2s
       timeout: 2s
       retries: 10
@@ -69,7 +69,7 @@ services:
       - /app/node_modules
       - /app/.next
     ports:
-      - "3001:3000"
+      - '3001:3000'
     depends_on:
       postgres-test:
         condition: service_healthy
@@ -78,7 +78,7 @@ services:
     command: npm start
     healthcheck:
       test:
-        ["CMD", "curl", "-f", "http://nextjs-test-server:3000/api/v1/status"]
+        ['CMD', 'curl', '-f', 'http://nextjs-test-server:3000/api/v1/status']
       interval: 5s
       timeout: 5s
       retries: 10

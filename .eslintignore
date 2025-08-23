@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+.next/
+dist/
+build/
+
+# Environment files
+.env*
+
+# Database migrations (JavaScript files that don't follow TypeScript conventions)
+src/database/migrations/
+
+# Other
+.DS_Store
+*.log
