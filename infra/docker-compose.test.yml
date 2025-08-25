@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # Test Database
+  postgres-test:
+    image: 'postgres:16-alpine3.22'
+    container_name: postgres-test
+    environment:
+      - POSTGRES_DB=testdb
+      - POSTGRES_USER=testuser
+      - POSTGRES_PASSWORD=testpass
+      - POSTGRES_PORT=5432
+    tmpfs:
+      - /var/lib/postgresql/data # Use memory for faster tests
+    ports:
+      - '5433:5432'
+    networks:
+      - test-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U testuser -d testdb']
+      interval: 2s
+      timeout: 2s
+      retries: 10
+
+  # Next.js Test Environment
+  nextjs-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: nextjs-test
+    environment:
+      - NODE_ENV=test
+      - POSTGRES_DATABASE=testdb
+      - POSTGRES_USER=testuser
+      - POSTGRES_PASSWORD=testpass
+      - POSTGRES_HOST=postgres-test
+      - POSTGRES_PORT=5432
+      - DATABASE_URL=postgresql://testuser:testpass@postgres-test:5432/testdb?sslmode=disable
+      - BASE_URL=http://nextjs-test-server:3000
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    networks:
+      - test-network
+    command: npm run test
+
+  # Next.js Server for Integration Tests
+  nextjs-test-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: nextjs-test-server
+    environment:
+      - NODE_ENV=test
+      - DATABASE_URL=postgresql://testuser:testpass@postgres-test:5432/testdb?sslmode=disable
+      - POSTGRES_DATABASE=testdb
+      - POSTGRES_USER=testuser
+      - POSTGRES_PASSWORD=testpass
+      - POSTGRES_HOST=postgres-test
+      - POSTGRES_PORT=5432
+      - BASE_URL=http://nextjs-test-server:3000
+      - PORT=3000
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - '3001:3000'
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    networks:
+      - test-network
+    command: npm start
+    healthcheck:
+      test:
+        ['CMD', 'curl', '-f', 'http://nextjs-test-server:3000/api/v1/status']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+networks:
+  test-network:
+    driver: bridge

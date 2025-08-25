@@ -1,0 +1,26 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install test dependencies
+RUN apk add --no-cache \
+    curl \
+    git
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Build the application for testing
+RUN npm run build
+
+# Expose port
+EXPOSE 3000
+
+# Default command (can be overridden)
+CMD ["npm", "start"]
